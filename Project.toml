@@ -1,0 +1,10 @@
+name = "CoNCMOR"
+uuid = "3a989f29-cff0-4f1c-87be-5dcdd41bd240"
+authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
+version = "0.1.0"
+
+[deps]
+FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
