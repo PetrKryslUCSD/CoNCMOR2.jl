@@ -1,0 +1,13 @@
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+*.vtk
+*.jls
+*.jld
+*.png
+*.json
+*.sublime-workspace
+docs/build/
+.vscode/
+test/playground.jl
+
