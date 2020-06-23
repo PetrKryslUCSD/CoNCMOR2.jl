@@ -78,7 +78,8 @@ function test()
     @test nclusters(mor) == length(partitionnumbers)
     I, J, V  = transfmatrix(mor, LegendreBasis, 1)
     @test nfuncspercluster(mor) == 1
-    @show nbasisfunctions(mor)
+    @test nbasisfunctions(mor) == 8
+    @show I, J, V
 end
 end
 using .mpart3

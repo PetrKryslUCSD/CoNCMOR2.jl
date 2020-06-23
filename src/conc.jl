@@ -223,7 +223,7 @@ Compute the ANISOTROPIC normalized coordinates.
 function _makenormalized!(self::CoNC)
 	if !self._havenormalized
 		box = _boundingbox(self.coordinates);
-	    @show sdim = length(self.coordinates[1])
+	    sdim = length(self.coordinates[1])
 	    for   j in 1:sdim
 	        rang = box[(j-1)*2+1:(j-1)*2+2];
             mr = mean(rang)
@@ -272,35 +272,34 @@ Evaluate Legendre polynomial at given stations.
 function _legpol(n, x)
     d = n - 1  # convert basis function number to polynomial degree
     @assert (n >= 1) && (n <= 12) "This degree of the polynomial ($d) is not implemented"
-    p = zeros(size(x))
     if d == 0
-        copyto!(p,  ones(size(x)));
+        return 1.0
     elseif d == 1
-        copyto!(p, x);
+        return x
     elseif d == 2
-        copyto!(p, @. 1/2*(3*x^2-1));
+        return 1/2*(3*x^2-1)
     elseif d == 3
-        copyto!(p, @. 1/2*(5*x^3-3*x));
+        return 1/2*(5*x^3-3*x)
     elseif d == 4
-        copyto!(p, @. 1/8*(35*x^4-30*x^2+3));
+        return 1/8*(35*x^4-30*x^2+3)
     elseif d == 5
-        copyto!(p, @. 1/8*(63*x^5-70*x^3+15*x));
+        return 1/8*(63*x^5-70*x^3+15*x)
     elseif d == 6
-        copyto!(p, @. 1/16*(231*x^6-315*x^4+105*x^2-5));
+        return 1/16*(231*x^6-315*x^4+105*x^2-5)
     elseif d == 7
-        copyto!(p, @. 1/16*(429*x^7-693*x^5+315*x^3-35*x));
+        return 1/16*(429*x^7-693*x^5+315*x^3-35*x)
     elseif d == 8
-        copyto!(p, @. (1.0/128) * ((6435*x^8) - (12012*x^6) + (6930*x^4) - (1260*x^2) + 35));
+        return (1.0/128) * ((6435*x^8) - (12012*x^6) + (6930*x^4) - (1260*x^2) + 35)
     elseif d == 9
-        copyto!(p, @. (1.0/128) * ((12155*x^9) - (25740*x^7) + (18018*x^5) - (4620*x^3) + (315*x)));
+        return (1.0/128) * ((12155*x^9) - (25740*x^7) + (18018*x^5) - (4620*x^3) + (315*x))
     elseif d == 10
-        copyto!(p, @. (1.0/256) * ((46189*x^10) - (109395*x^8) + (90090*x^6) - (30030*x^4) + (3465*x^2) - 63));
+        return (1.0/256) * ((46189*x^10) - (109395*x^8) + (90090*x^6) - (30030*x^4) + (3465*x^2) - 63)
     elseif d == 11
-        copyto!(p, @. (1.0/256) * ((88179*x^11) - (230945*x^9) + (218790*x^7) - (90090*x^5) + (15015*x^3) - (693*x)));
+        return (1.0/256) * ((88179*x^11) - (230945*x^9) + (218790*x^7) - (90090*x^5) + (15015*x^3) - (693*x))
     elseif d == 12
-        copyto!(p, @. (1.0/1024) * ((676039*x^12) - (1939938*x^10) + (2078505*x^8) - (1021020*x^6) + (225225*x^4) - (18018*x^2) + 231));
+        return (1.0/1024) * ((676039*x^12) - (1939938*x^10) + (2078505*x^8) - (1021020*x^6) + (225225*x^4) - (18018*x^2) + 231)
     end
-    return p
+    return 0.0
 end
 
 
@@ -382,24 +381,28 @@ function _generatebasis!(self::CoNC, bnumbers::AbstractRange, f::F) where {F}
     elseif sdim == 2
 		# First calculate the total of basis functions
 	    b=1;
-	    for   iy = 1:maxbnumber, ix = 1:maxbnumber
+	    for iy = 1:maxbnumber, ix = 1:maxbnumber
 	        if sumlo <= ix+iy <= sumhi
 	            b=b+1;
 	        end
 	    end
 	    # Now allocate the basis function buffer, and calculate the one-dimensional basis functions
-	    self._basis = zeros(size(self.xyz,1),b-1);
-	    fy = zeros(size(self.xyz,1),maxbnumber);
-	    fx = zeros(size(self.xyz,1),maxbnumber);
-	    for   b = 1:maxbnumber
-	    	fy[:, b] = f(b, self._normalizedxyz[:,2])
-	        fx[:, b] = f(b, self._normalizedxyz[:,1]);
-	    end
+	    self._basis = zeros(length(self.coordinates),b-1);
+	    fy = zeros(length(self.coordinates),maxbnumber);
+	    fx = zeros(length(self.coordinates),maxbnumber);
+	    for b in 1:maxbnumber
+            for i in 1:length(self.coordinates)
+                fy[i, b] = f(b, self._normalizedcoordinates[i][2])
+                fx[i, b] = f(b, self._normalizedcoordinates[i][1]);
+            end
+        end
 	    # Sweep through the basis functions, calculate the b-th column
 	    b=1;
 	    for  iy = 1:maxbnumber, ix = 1:maxbnumber
 	        if sumlo <= ix+iy <= sumhi # Only for the upper-left pyramid
-	            self._basis[:,b] = view(fx, :, ix) .* view(fy, :, iy);
+                for i in 1:size(self._basis, 1)
+                    self._basis[i,b] = fx[i, ix] * fy[i, iy];
+                end
 	            b=b+1;
 	        end
 	    end
@@ -412,20 +415,24 @@ function _generatebasis!(self::CoNC, bnumbers::AbstractRange, f::F) where {F}
             end
         end
         # Now allocate the basis function buffer, and calculate the one-dimensional basis functions
-        self._basis = zeros(size(self.xyz,1),b-1);
-        fz = zeros(size(self.xyz,1),maxbnumber);
-        fy = zeros(size(self.xyz,1),maxbnumber);
-        fx = zeros(size(self.xyz,1),maxbnumber);
-        for   b = 1:maxbnumber
-        	fz[:, b] = f(b, self._normalizedxyz[:,3])
-        	fy[:, b] = f(b, self._normalizedxyz[:,2])
-            fx[:, b] = f(b, self._normalizedxyz[:,1]);
+        self._basis = zeros(length(self.coordinates),b-1);
+        fz = zeros(length(self.coordinates),maxbnumber);
+        fy = zeros(length(self.coordinates),maxbnumber);
+        fx = zeros(length(self.coordinates),maxbnumber);
+        for  b in 1:maxbnumber
+            for i in 1:length(self.coordinates)
+                fz[i, b] = f(b, self._normalizedcoordinates[i][3])
+                fy[i, b] = f(b, self._normalizedcoordinates[i][2])
+                fx[i, b] = f(b, self._normalizedcoordinates[i][1]);
+            end
         end
         # Sweep through the basis functions, calculate the b-th column
         b=1;
         for   iz = 1:maxbnumber, iy = 1:maxbnumber, ix = 1:maxbnumber
             if sumlo <= ix+iy+iz <= sumhi # Only for the upper-left pyramid
-                self._basis[:,b] = view(fx, :, ix) .* view(fy, :, iy) .* view(fz, :, iz);
+                for i in 1:size(self._basis, 1)
+                    self._basis[i,b] = fx[i, ix] * fy[i, iy] * fz[i, iz];
+                end
                 b=b+1;
             end
         end
