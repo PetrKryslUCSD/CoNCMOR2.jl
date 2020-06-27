@@ -13,13 +13,22 @@ Collect information for one coherent node cluster.
 mutable struct CoNC{N}
     nlist::Vector{Int64}
     coordinates::Vector{SVector{N, Float64}}
-    _havenormalized::Bool # PRIVATE: do not access directly
-    _normalizedcoordinates::Vector{SVector{N, Float64}} # PRIVATE: do not access directly
-    _basis::Matrix{Float64} # PRIVATE: do not access directly
+
+    # PRIVATE: do not access directly. Do we have normalized coordinates?
+    _havenormalized::Bool 
+    # PRIVATE: do not access directly. Normalized coordinates.
+    _normalizedcoordinates::Vector{SVector{N, Float64}} 
+    # PRIVATE: do not access directly. Each column is for one basis function.
+    # The number of rows corresponds to the number of nodes in the cluster.
+    _basis::Matrix{Float64} 
+    # PRIVATE: do not access directly. What is the number of each basis function
+    # in the global transformation matrix?
+    _basis_number::Vector{Int64}
+
     function CoNC(node_list, xyz)
         N = length(xyz[1])
         ixyz = [SVector{N, Float64}(xyz[idx]) for idx in 1:length(xyz)]
-        return new{N}(node_list, ixyz, false, ixyz, Array{Float64}(undef, 0, 0))
+        return new{N}(node_list, ixyz, false, deepcopy(ixyz), Array{Float64}(undef, 0, 0))
     end
 end
 
@@ -93,6 +102,13 @@ Retrieve the number of basis functions per cluster.
 function nfuncspercluster(self::CoNCData)
     return basisdim(self.clusters[1])
 end
+
+"""
+    basisfunctionnumbers(self::CoNCData)
+
+Access the numbers
+"""
+basisfunctionnumbers(self::CoNCData, cluster) = self.clusters[cluster]._basis_number
 
 """
     nbasisfunctions(self::CoNCData)
@@ -171,22 +187,10 @@ function _transfmatrix(self::CoNCData, bnumbers::AbstractRange, f::F) where {F}
                 push!(J, c)
                 push!(V, self.clusters[g]._basis[r,b])
             end
+            self.clusters[g]._basis_number[b] = c
             c=c+1;
         end
     end
-    # c = 1;
-    # for  g = 1:length(self.clusters)
-    #     for   dof = 1:ndof
-    #         dofnums_r = fld.dofnums[self.clusters[g].nlist, dof]
-    #         dofnums_c = fill(0, 1)
-    #         for   b = 1:basisdim(self.clusters[g])
-    #             fill!(dofnums_c, c)
-    #             # assemble unsymmetric matrix
-    #             assemble!(assembler, reshape(self.clusters[g]._basis[:,b], length(dofnums_r), 1), dofnums_r, dofnums_c);
-    #             c=c+1;
-    #         end
-    #     end 
-    # end
     return I, J, V;
 end
 
@@ -366,6 +370,7 @@ function _generatebasis!(self::CoNC, bnumbers::AbstractRange, f::F) where {F}
 	    end
 	    # Now allocate the basis function buffer, and calculate the one-dimensional basis functions
 	    self._basis = zeros(size(self.xyz,1),b-1);
+        self._basis_number = zeros(b-1);
 	    fx = zeros(size(self.xyz,1), maxbnumber);
 	    for   b = 1:maxbnumber
 	        fx[:, b] = f(b, self._normalizedxyz[:,1]);
@@ -388,6 +393,7 @@ function _generatebasis!(self::CoNC, bnumbers::AbstractRange, f::F) where {F}
 	    end
 	    # Now allocate the basis function buffer, and calculate the one-dimensional basis functions
 	    self._basis = zeros(length(self.coordinates),b-1);
+        self._basis_number = zeros(b-1);
 	    fy = zeros(length(self.coordinates),maxbnumber);
 	    fx = zeros(length(self.coordinates),maxbnumber);
 	    for b in 1:maxbnumber
@@ -416,6 +422,7 @@ function _generatebasis!(self::CoNC, bnumbers::AbstractRange, f::F) where {F}
         end
         # Now allocate the basis function buffer, and calculate the one-dimensional basis functions
         self._basis = zeros(length(self.coordinates),b-1);
+        self._basis_number = zeros(b-1);
         fz = zeros(length(self.coordinates),maxbnumber);
         fy = zeros(length(self.coordinates),maxbnumber);
         fx = zeros(length(self.coordinates),maxbnumber);
