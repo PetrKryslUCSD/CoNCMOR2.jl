@@ -82,7 +82,7 @@ function CoNCData(xyz, partitioning)
     end 
     for j in 1:numclusters
         p = partitionnumbers[j]
-        self.clusters[j] =  CoNC(nodelists[p], [xyz[k] for k in nodelists[p]])
+        self.clusters[p] =  CoNC(nodelists[p], [xyz[k] for k in nodelists[p]])
     end
     return self
 end
