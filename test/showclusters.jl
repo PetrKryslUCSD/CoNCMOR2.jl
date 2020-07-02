@@ -37,3 +37,46 @@ end
 end
 using .mpart3
 mpart3.test()
+
+module mpart4
+using StaticArrays
+using Test
+using PlotlyJS
+using CoNCMOR: pointpartitioning3d, CoNCData, nclusters, nfuncspercluster
+using CoNCMOR: nbasisfunctions, transfmatrix, LegendreBasis
+colors = ["rgb(164, 194, 244)", "rgb(194, 194, 144)", "rgb(194, 144, 244)", "rgb(164, 244, 144)", "rgb(164, 194, 244)", "rgb(255, 217, 102)", "rgb(234, 153, 153)", "rgb(142, 124, 195)"]
+function test()
+    points = [SVector{3}([rand(), rand(), rand()])  for idx in 1:300]
+    ppartitioning = pointpartitioning3d(points, 8)
+    partitionnumbers = unique(ppartitioning)
+    data = PlotlyBase.AbstractTrace[]
+    for gp in partitionnumbers
+        trace1 = scatter(; 
+            x=[points[i][1] for i in 1:length(points) if ppartitioning[i] == gp], 
+            y=[points[i][2] for i in 1:length(points) if ppartitioning[i] == gp] ,
+            z=[points[i][3] for i in 1:length(points) if ppartitioning[i] == gp] ,
+          mode="markers",
+          marker=attr(color=colors[gp], size=12,
+              line=attr(color="white", width=0.5))
+          )
+        push!(data, trace1)
+    end
+    layout = Layout(;title="Clusters",
+        xaxis=attr(title="x", zeroline=false),
+        yaxis=attr(title="y", zeroline=false), 
+        zaxis=attr(title="z", zeroline=false), 
+        )
+
+    pl = plot(data, layout)
+    display(pl)
+    # mor = CoNCData(points, ppartitioning)
+    # @test nclusters(mor) == length(partitionnumbers)
+    # I, J, V  = transfmatrix(mor, LegendreBasis, 1)
+    # @test nfuncspercluster(mor) == 1
+    # @test nbasisfunctions(mor) == 8
+    # @show I, J, V
+
+end
+end
+using .mpart4
+mpart4.test()
