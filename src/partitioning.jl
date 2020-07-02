@@ -98,7 +98,7 @@ function pointpartitioning3d(points, nincluded, npartitions)
         @inbounds for j in 1:length(X)
             if nincluded[j] # Is the point to be included in the partitioning?
                 jp = partitions[j]
-                xj, yj, zj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp], X[j, 3] - CG[3, jp]
+                xj, yj, zj = X[j][1] - CG[1, jp], X[j][2] - CG[2, jp], X[j][3] - CG[3, jp]
                 MatrixMomentOfInertia[1, 1, jp] += yj^2 + zj^2
                 MatrixMomentOfInertia[2, 2, jp] += xj^2 + zj^2
                 MatrixMomentOfInertia[3, 3, jp] += yj^2 + xj^2
@@ -123,7 +123,7 @@ function pointpartitioning3d(points, nincluded, npartitions)
             if nincluded[j] # Is the point to be included in the partitioning?
                 jp = partitions[j]
                 vx, vy, vz = longdir[:, jp]
-                xj, yj, zj = X[j, 1] - CG[1, jp], X[j, 2] - CG[2, jp], X[j, 3] - CG[3, jp]
+                xj, yj, zj = X[j][1] - CG[1, jp], X[j][2] - CG[2, jp], X[j][3] - CG[3, jp]
                 d = xj * vx + yj * vy + zj * vz
                 c = 0
                 if d < 0.0
