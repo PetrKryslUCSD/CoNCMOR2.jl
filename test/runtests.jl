@@ -3,7 +3,7 @@ using Test
 module mpart1
 using StaticArrays
 using Test
-using CoNCMOR: pointpartitioning2d
+using CoNCMOR2: pointpartitioning2d
 function test()
     points = [SVector{2}([1.0, 0.0]), SVector{2}([1.0, 1.0]), SVector{2}([-1.0, -1.0]), SVector{2}([-1.0, 1.0])]
     p = pointpartitioning2d(points, 2)
@@ -17,7 +17,7 @@ module mpart2
 using StaticArrays
 using Test
 using PlotlyJS
-using CoNCMOR: pointpartitioning2d
+using CoNCMOR2: pointpartitioning2d
 colors = ["rgb(164, 194, 244)", "rgb(194, 194, 144)", "rgb(194, 144, 244)", "rgb(164, 244, 144)", "rgb(164, 194, 244)", "rgb(255, 217, 102)", "rgb(234, 153, 153)", "rgb(142, 124, 195)"]
 function test()
     points = [SVector{2}([rand(), rand()])  for idx in 1:1000]
@@ -50,8 +50,8 @@ module mpart3
 using StaticArrays
 using Test
 using PlotlyJS
-using CoNCMOR: pointpartitioning2d, CoNCData, nclusters, nfuncspercluster
-using CoNCMOR: nbasisfunctions, transfmatrix, LegendreBasis
+using CoNCMOR2: pointpartitioning2d, CoNCData, nclusters, nfuncspercluster
+using CoNCMOR2: nbasisfunctions, transfmatrix, LegendreBasis
 colors = ["rgb(164, 194, 244)", "rgb(194, 194, 144)", "rgb(194, 144, 244)", "rgb(164, 244, 144)", "rgb(164, 194, 244)", "rgb(255, 217, 102)", "rgb(234, 153, 153)", "rgb(142, 124, 195)"]
 function test()
     # @show points = [SVector{2}([rand(), rand()])  for idx in 1:30]
@@ -95,8 +95,8 @@ module mpart4
 using StaticArrays
 using Test
 using PlotlyJS
-using CoNCMOR: pointpartitioning2d, CoNCData, nclusters, nfuncspercluster
-using CoNCMOR: nbasisfunctions, transfmatrix, LegendreBasis, basisfunctionnumbers
+using CoNCMOR2: pointpartitioning2d, CoNCData, nclusters, nfuncspercluster
+using CoNCMOR2: nbasisfunctions, transfmatrix, LegendreBasis, basisfunctionnumbers
 colors = ["rgb(164, 194, 244)", "rgb(194, 194, 144)", "rgb(194, 144, 244)", "rgb(164, 244, 144)", "rgb(164, 194, 244)", "rgb(255, 217, 102)", "rgb(234, 153, 153)", "rgb(142, 124, 195)"]
 function test()
     # @show points = [SVector{2}([rand(), rand()])  for idx in 1:100]
